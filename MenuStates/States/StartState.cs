@@ -11,9 +11,11 @@ namespace AdminBot.MenuStates.States;
 public class StartState : IStateMenu
 {
     private readonly ITelegramBotClient _bot;
+    private const string DirectionManagerButton = "Перейти в менеджер КПИ";
+    private const string StoreManagerButton = "Перейти в менеджер Магазинов";
     private const string PrintReportButton = "Печатать отчет";
     private const string ChooseStoreButton = "Выбрать магазин";
-    private const string DownloadManagerButton = "Попасть в менеджер отчетов";
+    private const string DownloadManagerButton = "Загрузить отчет";
     private const string InstructionButton = "Печать инструкции";
     private const string AuthorizationButton = "Авторизация";
     public StartState(ITelegramBotClient bot)
@@ -31,19 +33,38 @@ public class StartState : IStateMenu
                 switch (update.Message.Text)
                 {
                     case DownloadManagerButton:
-                        await context.SetState(update, 
-                            new UserBot(userBot.Id,
-                            new DownloadFileMenu(_bot),
-                            userBot.Role));
+                        if (userBot.Role >= Roles.SectorDirector)
+                        {
+                            await context.SetState(update,
+                                new UserBot(userBot.Id,
+                                new DownloadFileState(_bot),
+                                userBot.Role));
+                        }
+                        await _bot.SendTextMessageAsync(update.Message.Chat.Id,
+                            "Для загрузки отчета нужна роль Администратор\\Директор сектора");
                         break;
                     case InstructionButton:
                         await PrintInstructions(update, userBot);
                         break;
                     case AuthorizationButton:
-                        await context.SetState(update, 
+                        await context.SetState(update,
                             new UserBot(userBot.Id,
-                            new AuthorizationMenu(_bot),
+                            new AuthorizationState(_bot),
                             userBot.Role));
+                        break;
+                    case StoreManagerButton:
+                        if (userBot.Role >= Roles.SectorDirector)
+                        {
+                            await context.SetState(update,
+                                new UserBot(userBot.Id,
+                                    new StoreManagerState(_bot),
+                                    userBot.Role));
+                        }
+                        else
+                        {
+                            await _bot.SendTextMessageAsync(update.Message.Chat.Id,
+                                "Для управлением списка магазинов нужна роль Администратор\\Директор сектора");
+                        }
                         break;
                 }
                 break;
@@ -78,9 +99,9 @@ public class StartState : IStateMenu
         return sb.ToString();
     }
 
-    public async Task SendStateMessage(Update update, UserBot userBot)
+    public async Task SendStateMessage(UserBot userBot)
     {
-        await _bot.SendTextMessageAsync(update.Message.Chat.Id, GetStateTitle(), replyMarkup: GetKeyboard(userBot));
+        await _bot.SendTextMessageAsync(userBot.Id, GetStateTitle(), replyMarkup: GetKeyboard(userBot));
     }
     private static string GetStateTitle()
     {
@@ -134,7 +155,7 @@ public class StartState : IStateMenu
                     new List<KeyboardButton>()
                     {
                         new KeyboardButton(ChooseStoreButton),
-                        new KeyboardButton(PrintReportButton)
+                        new KeyboardButton(DownloadManagerButton)
                     },
                     new List<KeyboardButton>()
                     {
@@ -143,13 +164,51 @@ public class StartState : IStateMenu
                 };
                 return new ReplyKeyboardMarkup(keyList);
             case Roles.SectorDirector:
-                break;
+                keyList = new List<List<KeyboardButton>>()
+                {
+                    new List<KeyboardButton>()
+                    {
+                        new KeyboardButton(InstructionButton),
+                        new KeyboardButton(AuthorizationButton),
+                    },
+                    new List<KeyboardButton>()
+                    {
+                        new KeyboardButton(ChooseStoreButton),
+                        new KeyboardButton(PrintReportButton),
+                        new KeyboardButton(DownloadManagerButton)
+                    },
+                    new List<KeyboardButton>()
+                    {
+                        new KeyboardButton(StoreManagerButton),
+                        new KeyboardButton(DirectionManagerButton)
+                    }
+                };
+                return new ReplyKeyboardMarkup(keyList);
             case Roles.Administrator:
-                break;
+                keyList = new List<List<KeyboardButton>>()
+                {
+                    new List<KeyboardButton>()
+                    {
+                        new KeyboardButton(InstructionButton),
+                        new KeyboardButton(AuthorizationButton),
+                    },
+                    new List<KeyboardButton>()
+                    {
+                        new KeyboardButton(ChooseStoreButton),
+                        new KeyboardButton(PrintReportButton),
+                        new KeyboardButton(DownloadManagerButton)
+                    },
+                    new List<KeyboardButton>()
+                    {
+                        new KeyboardButton(StoreManagerButton),
+                        new KeyboardButton(DirectionManagerButton)
+                    }
+                };
+                return new ReplyKeyboardMarkup(keyList);
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        return null;
     }
 
 }

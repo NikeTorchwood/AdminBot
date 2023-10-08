@@ -7,5 +7,5 @@ namespace AdminBot.MenuStates;
 public interface IStateMenu
 {
     public Task ProcessMessage(Update update, UserBot userBot, TelegramBotMenuContext context);
-    Task SendStateMessage(Update update, UserBot userBot);
+    Task SendStateMessage(UserBot userBot);
 }

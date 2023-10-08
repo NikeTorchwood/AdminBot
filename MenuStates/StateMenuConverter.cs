@@ -7,15 +7,17 @@ public static class StateMenuConverter
 {
     private static readonly Dictionary<Type, StatesMenu> StateToEnumMap = new()
     {
-        { typeof(StartState), StatesMenu.StartMenu},
-        { typeof(DownloadFileMenu), StatesMenu.DownloadMenu },
-        { typeof(AuthorizationMenu), StatesMenu.AuthorizationMenu },
+        { typeof(StartState), StatesMenu.StartState},
+        { typeof(DownloadFileState), StatesMenu.DownloadFileState },
+        { typeof(AuthorizationState), StatesMenu.AuthorizationState },
+        { typeof(StoreManagerState), StatesMenu.StoreManagerState},
     };
     private static readonly Dictionary<StatesMenu, Type> EnumToStateMap = new()
     {
-        { StatesMenu.StartMenu, typeof(StartState) },
-        { StatesMenu.DownloadMenu, typeof(DownloadFileMenu) },
-        { StatesMenu.AuthorizationMenu , typeof(AuthorizationMenu)}
+        { StatesMenu.StartState, typeof(StartState) },
+        { StatesMenu.DownloadFileState, typeof(DownloadFileState) },
+        { StatesMenu.AuthorizationState , typeof(AuthorizationState)},
+        { StatesMenu.StoreManagerState, typeof(StoreManagerState)},
     };
     public static StatesMenu ConvertToStatesMenu(IStateMenu state)
     {

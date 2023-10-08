@@ -8,11 +8,11 @@ using Telegram.Bot.Types.ReplyMarkups;
 
 namespace AdminBot.MenuStates.States;
 
-public class DownloadFileMenu : IStateMenu
+public class DownloadFileState : IStateMenu
 {
     private readonly ITelegramBotClient _bot;
     private const string Button1 = "Главное Меню";
-    public DownloadFileMenu(ITelegramBotClient bot)
+    public DownloadFileState(ITelegramBotClient bot)
     {
         _bot = bot ?? throw new ArgumentNullException(nameof(bot));
     }
@@ -50,10 +50,10 @@ public class DownloadFileMenu : IStateMenu
         }
     }
 
-    public async Task SendStateMessage(Update update, UserBot userBot)
+    public async Task SendStateMessage(UserBot userBot)
     {
 
-        await _bot.SendTextMessageAsync(update.Message.Chat.Id, GetStateTitle(), replyMarkup: GetKeyboard());
+        await _bot.SendTextMessageAsync(userBot.Id, GetStateTitle(), replyMarkup: GetKeyboard());
     }
 
     public static string GetStateTitle()

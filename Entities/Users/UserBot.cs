@@ -1,4 +1,5 @@
 ﻿using AdminBot.MenuStates;
+using Telegram.Bot.Types;
 
 namespace AdminBot.Entities.Users;
 
@@ -10,7 +11,6 @@ public class UserBot
         StateMenu = state;
         Role = roleResult;
     }
-
     public long Id { get; }
     public IStateMenu StateMenu { get; }
     public Roles Role { get;}

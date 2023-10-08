@@ -2,7 +2,8 @@
 
 public enum StatesMenu
 {
-    StartMenu,
-    DownloadMenu,
-    AuthorizationMenu
+    StartState,
+    DownloadFileState,
+    AuthorizationState,
+    StoreManagerState,
 }

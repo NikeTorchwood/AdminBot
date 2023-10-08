@@ -15,12 +15,13 @@ public class UserRepositoryMsSQL : IUserRepository
         _connectionProvider = connectionProvider;
     }
 
-    public async Task SaveUser(UserBot user)
+    public async Task SaveUser(Update update, UserBot user)
     {
+        var userId = update.Message.From.Id;
         var resultState = (int)StateMenuConverter.ConvertToStatesMenu(user.StateMenu);
         Console.WriteLine($@"
             Сохранено в БД:
-                UserId = {user.Id},
+                UserId = {userId},
                 UserState = {(StatesMenu)resultState},
                 UserRole = {user.Role}");
         Console.WriteLine(new string('_', 50));
@@ -37,24 +38,24 @@ public class UserRepositoryMsSQL : IUserRepository
                 VALUES (Source.[UserId], Source.[State], Source.[Role]);
         ";
         await using var command = new SqlCommand(query, connection);
-        command.Parameters.AddWithValue("@UserId", user.Id);
+        command.Parameters.AddWithValue("@UserId", userId);
         command.Parameters.AddWithValue("@State", resultState);
         command.Parameters.AddWithValue("@UserRole", user.Role);
         await connection.OpenAsync();
         await command.ExecuteNonQueryAsync();
+        await connection.CloseAsync();
     }
-    public UserBot GetUserById(long userId, ITelegramBotClient bot)
+    public async Task<UserBot> GetUserById(long userId, ITelegramBotClient bot)
     {
-        using var connection = (SqlConnection)_connectionProvider.GetConnection();
+        await using var connection = (SqlConnection)_connectionProvider.GetConnection();
         const string query = "SELECT State, Role FROM UserRepository WHERE UserId = @UserId";
-        using var command = new SqlCommand(query, connection);
+        await using var command = new SqlCommand(query, connection);
         command.Parameters.AddWithValue("@UserId", userId);
         connection.Open();
         var stateResult = 0;
         var roleResult = Roles.None;
-        using (var reader = command.ExecuteReader())
+        await using (var reader = await command.ExecuteReaderAsync())
         {
-
             if (reader.HasRows)
             {
                 while (reader.Read())
@@ -64,6 +65,7 @@ public class UserRepositoryMsSQL : IUserRepository
                 }
             }
         }
+        await connection.CloseAsync();
         Console.WriteLine($@"
             Получено из БД:
                 UserId = {userId},
@@ -74,4 +76,40 @@ public class UserRepositoryMsSQL : IUserRepository
         return new UserBot(userId, state, roleResult);
     }
 
+    public async Task<List<long>> GetUsersByRole(Roles role)
+    {
+        var result = new List<long>();
+        await using var connection = (SqlConnection)_connectionProvider.GetConnection();
+        const string query = "SELECT UserId FROM UserRepository WHERE Role = @UsersRole";
+        await using var command = new SqlCommand(query, connection);
+        command.Parameters.AddWithValue("@UsersRole", role);
+        connection.Open();
+        await using var reader = await command.ExecuteReaderAsync();
+        if (!reader.HasRows) return result;
+        while (reader.Read())
+        {
+            var userId = reader.IsDBNull(0) ? 0 : reader.GetInt64(0);
+            result.Add(userId);
+            Console.WriteLine($@"
+                        Получен из БД список для запроса:
+                        UserRole = {role},
+                        ChatId = {userId}");
+            Console.WriteLine(new string('_', 50));
+        }
+        await connection.CloseAsync();
+        return result;
+    }
+
+    public async Task<bool> ChangeRole(long userId, Roles newRole)
+    {
+        await using var connection = (SqlConnection)_connectionProvider.GetConnection();
+        const string query = "Update UserRepository set [Role] = @UserRole WHERE UserId = @UserId";
+        await using var command = new SqlCommand(query, connection);
+        command.Parameters.AddWithValue("@UserId", userId);
+        command.Parameters.AddWithValue("@UserRole", newRole);
+        await connection.OpenAsync();
+        var result = await command.ExecuteNonQueryAsync();
+        await connection.CloseAsync();
+        return result >= 0;
+    }
 }
