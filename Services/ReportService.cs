@@ -1,8 +1,7 @@
-﻿using System.Diagnostics;
-using System.Text;
-using AdminBot.Entities;
+﻿using AdminBot.Entities;
 using AdminBot.Services.ServiceInterfaces;
 using Aspose.Cells;
+using System.Diagnostics;
 
 namespace AdminBot.Services;
 
@@ -36,8 +35,8 @@ public class ReportService
         Console.WriteLine("Подготовка к загрузке в БД");
         var sw = new Stopwatch();
         sw.Restart();
-        var storeNames =await _storeService.GetStoreNameList();
-        var storeList =  storeNames.Select(storeName => 
+        var storeNames = await _storeService.GetStoreNameList();
+        var storeList = storeNames.Select(storeName =>
             GetStoreFromReport(storeName, _directionNames, this)).ToList();
         sw.Stop();
         Console.WriteLine($"Подготовка к загрузке в БД : {sw.Elapsed}");

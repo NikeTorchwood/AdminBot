@@ -1,9 +1,7 @@
-﻿using System.Data;
-using System.Data.SqlClient;
-using AdminBot.Entities;
+﻿using AdminBot.Entities;
 using AdminBot.MenuStates;
+using System.Data.SqlClient;
 using Telegram.Bot;
-using Telegram.Bot.Requests.Abstractions;
 using Telegram.Bot.Types;
 
 namespace AdminBot.Repository.UserRepository;

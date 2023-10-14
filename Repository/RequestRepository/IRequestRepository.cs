@@ -1,5 +1,4 @@
 ﻿using AdminBot.Entities;
-using Telegram.Bot.Types;
 
 namespace AdminBot.Repository.RequestRepository;
 

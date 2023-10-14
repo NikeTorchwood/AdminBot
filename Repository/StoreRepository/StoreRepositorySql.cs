@@ -1,9 +1,6 @@
-﻿using System;
+﻿using AdminBot.Entities;
 using System.Data.SqlClient;
 using System.Diagnostics;
-using System.Text;
-using AdminBot.Entities;
-using AdminBot.Repository;
 
 namespace AdminBot.Repository.StoreRepository;
 

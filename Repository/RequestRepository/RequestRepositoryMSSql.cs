@@ -1,6 +1,5 @@
-﻿using System.Data.SqlClient;
-using AdminBot.Entities;
-using Telegram.Bot.Types;
+﻿using AdminBot.Entities;
+using System.Data.SqlClient;
 
 namespace AdminBot.Repository.RequestRepository;
 
@@ -40,7 +39,7 @@ public class RequestRepositoryMSSql : IRequestRepository
         await connection.CloseAsync();
     }
 
-    
+
 
     public async Task<ChangeRoleRequest> GetChangeRoleRequest(long responsibleId, long confirmedMessageId)
     {

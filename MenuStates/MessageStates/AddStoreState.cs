@@ -30,7 +30,7 @@ public class AddStoreState : IStateMenu
                         if (update.Message.Text.Length == 4)
                         {
                             await _bot.SendTextMessageAsync(userBot.Id, $"\"{update.Message.Text}\" - добавить код оп?",
-                                replyMarkup: new InlineKeyboardMarkup( new List<InlineKeyboardButton>()
+                                replyMarkup: new InlineKeyboardMarkup(new List<InlineKeyboardButton>()
                                 {
                                     InlineKeyboardButton.WithCallbackData("Да", $"{(int)RequestTypes.AddStore}.Apply"),
                                     InlineKeyboardButton.WithCallbackData("Нет", $"{(int)RequestTypes.AddStore}.Decline")
@@ -45,7 +45,7 @@ public class AddStoreState : IStateMenu
                         break;
                 }
                 break;
-            
+
         }
     }
     public async Task SendStateMessage(UserBot user, UpdateHandlerService updateHandlerService)

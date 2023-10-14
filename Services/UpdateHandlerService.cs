@@ -86,7 +86,7 @@ public class UpdateHandlerService
 
     public async Task PrintStoreReport(UserBot user)
     {
-         var reportData = await _storeService.GetStoreData(user.StoreCode);
-         await _bot.SendTextMessageAsync(user.Id, reportData);
+        var reportData = await _storeService.GetStoreData(user.StoreCode);
+        await _bot.SendTextMessageAsync(user.Id, reportData);
     }
 }

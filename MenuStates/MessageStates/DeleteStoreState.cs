@@ -82,7 +82,7 @@ public class DeleteStoreState : IStateMenu
         {
             new("Назад")
         });
-        await _bot.SendTextMessageAsync(user.Id, 
+        await _bot.SendTextMessageAsync(user.Id,
             "Список магазинов на клавиатуре:\nВыберите какой магазин нужно удалить?",
             replyMarkup: new ReplyKeyboardMarkup(keyboard));
     }

@@ -4,7 +4,7 @@ using Telegram.Bot;
 
 namespace AdminBot
 {
-    public  class Program
+    public class Program
     {
         public static void Main()
         {

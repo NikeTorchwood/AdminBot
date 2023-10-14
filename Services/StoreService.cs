@@ -1,7 +1,7 @@
-﻿using System.Text;
-using AdminBot.Entities;
+﻿using AdminBot.Entities;
 using AdminBot.Repository.StoreRepository;
 using AdminBot.Services.ServiceInterfaces;
+using System.Text;
 
 namespace AdminBot.Services;
 
@@ -39,13 +39,13 @@ public class StoreService : IStoreService
         sb.AppendLine($"Код ОП: {store.CodeStore}");
         foreach (var economicDirection in store.EconomicDirections)
         {
-            var percentage = (double)economicDirection.Fact / (double) economicDirection.Plan;
+            var percentage = (double)economicDirection.Fact / (double)economicDirection.Plan;
             var balance = economicDirection.Plan - economicDirection.Fact;
             sb.AppendLine(new string('_', 20));
             sb.AppendLine($"{economicDirection.DirectionName}");
             sb.AppendLine($"План: {economicDirection.Plan}");
             sb.AppendLine($"Факт: {economicDirection.Fact}");
-            sb.AppendLine($"Процент выполнения: {percentage, 0:P1}");
+            sb.AppendLine($"Процент выполнения: {percentage,0:P1}");
             sb.AppendLine($"Остаток: {balance}");
         }
         return sb.ToString();

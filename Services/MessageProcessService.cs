@@ -1,6 +1,5 @@
 ﻿using AdminBot.Entities;
 using AdminBot.MenuStates;
-using AdminBot.Repository.UserRepository;
 using AdminBot.Services.ServiceInterfaces;
 using Telegram.Bot;
 using Telegram.Bot.Types;

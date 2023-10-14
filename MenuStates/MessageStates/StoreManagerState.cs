@@ -1,6 +1,6 @@
-﻿using System.Text;
-using AdminBot.Entities;
+﻿using AdminBot.Entities;
 using AdminBot.Services;
+using System.Text;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -38,7 +38,7 @@ public class StoreManagerState : IStateMenu
                         await updateHandlerService.SetState(userBot, new AddStoreState(_bot));
                         break;
                     case DeleteStoreButton:
-                            await updateHandlerService.SetState(userBot, new DeleteStoreState(_bot));
+                        await updateHandlerService.SetState(userBot, new DeleteStoreState(_bot));
                         break;
                 }
                 break;
@@ -90,6 +90,6 @@ public class StoreManagerState : IStateMenu
         return new ReplyKeyboardMarkup(keyList);
     }
 
-    
+
 
 }
