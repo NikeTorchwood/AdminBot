@@ -1,4 +1,4 @@
-﻿namespace AdminBot.Entities.Users;
+﻿namespace AdminBot.Entities;
 
 public enum Roles
 {

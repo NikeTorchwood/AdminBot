@@ -11,6 +11,10 @@ public static class StateMenuConverter
         { typeof(DownloadFileState), StatesMenu.DownloadFileState },
         { typeof(AuthorizationState), StatesMenu.AuthorizationState },
         { typeof(StoreManagerState), StatesMenu.StoreManagerState},
+        { typeof(AddStoreState), StatesMenu.AddStoreState},
+        { typeof(DeleteStoreState), StatesMenu.DeleteStoreState },
+        { typeof(ChooseStoreState), StatesMenu.ChooseStoreState},
+        //{ typeof(EmployerManagerState),StatesMenu.EmployerManagerState},
     };
     private static readonly Dictionary<StatesMenu, Type> EnumToStateMap = new()
     {
@@ -18,8 +22,12 @@ public static class StateMenuConverter
         { StatesMenu.DownloadFileState, typeof(DownloadFileState) },
         { StatesMenu.AuthorizationState , typeof(AuthorizationState)},
         { StatesMenu.StoreManagerState, typeof(StoreManagerState)},
+        { StatesMenu.AddStoreState , typeof(AddStoreState)},
+        { StatesMenu.DeleteStoreState , typeof(DeleteStoreState)},
+        { StatesMenu.ChooseStoreState , typeof(ChooseStoreState)},
+        //{ StatesMenu.EmployerManagerState , typeof(EmployerManagerState)}
     };
-    public static StatesMenu ConvertToStatesMenu(IStateMenu state)
+    public static StatesMenu ConvertToStatesMenu(IStateMenu? state)
     {
         var stateType = state.GetType();
 
@@ -30,7 +38,7 @@ public static class StateMenuConverter
         throw new ArgumentException("Invalid state type");
     }
 
-    public static IStateMenu ConvertToIStateMenu(StatesMenu state, ITelegramBotClient bot)
+    public static IStateMenu? ConvertToIStateMenu(StatesMenu state, ITelegramBotClient bot)
     {
         if (bot == null)
         {

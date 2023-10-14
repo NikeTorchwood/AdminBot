@@ -6,4 +6,8 @@ public enum StatesMenu
     DownloadFileState,
     AuthorizationState,
     StoreManagerState,
+    AddStoreState,
+    DeleteStoreState,
+    ChooseStoreState,
+    EmployerManagerState
 }

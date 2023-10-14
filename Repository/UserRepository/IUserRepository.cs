@@ -1,4 +1,5 @@
-﻿using AdminBot.Entities.Users;
+﻿using AdminBot.Entities;
+using AdminBot.MenuStates;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 
@@ -6,9 +7,11 @@ namespace AdminBot.Repository.UserRepository;
 
 public interface IUserRepository
 {
-    public Task SaveUser(Update update, UserBot user);
-
-    public Task<UserBot> GetUserById(long id, ITelegramBotClient bot);
+    public Task SaveUser(UserBot user, IStateMenu newState);
     public Task<List<long>> GetUsersByRole(Roles role);
-    public Task<bool> ChangeRole(long userId, Roles newRole);
+    Task ResetRole(long userId);
+    Task<List<long>> GetStoreDirectorId(string? storeCode);
+    Task ChangeRole(ChangeRoleRequest request);
+    Task<UserBot> GetUser(User user, ITelegramBotClient bot);
+    Task<UserBot> GetUserById(long userId, ITelegramBotClient bot);
 }

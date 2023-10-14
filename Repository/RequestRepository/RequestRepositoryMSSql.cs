@@ -1,6 +1,6 @@
 ﻿using System.Data.SqlClient;
-using AdminBot.Entities.Users;
-using AdminBot.Repository;
+using AdminBot.Entities;
+using Telegram.Bot.Types;
 
 namespace AdminBot.Repository.RequestRepository;
 
@@ -13,27 +13,28 @@ public class RequestRepositoryMSSql : IRequestRepository
         _connectionProvider = connectionProvider ?? throw new ArgumentNullException(nameof(connectionProvider));
     }
 
-    public async Task CreateChangeRoleRequest(int messageMessageId, RequestTypes requestType, long responsibleId, long applicantId, Roles newRole)
+    public async Task CreateChangeRoleRequest(long applicantId, long responsibleId, int messageId, Roles newRole,
+        string? applicantStoreCode = default)
     {
         Console.WriteLine($@"
-            Сохранено в БД Запрос:
-                RequestId = {messageMessageId},
-                RequestType = {requestType},
-                ResponsibleId = {responsibleId},
-                ApplicantId = {applicantId},
-                NewRole = {newRole}");
+        Сохранено в БД Запрос:
+        RequestId = {messageId},
+        ResponsibleId = {responsibleId},
+        ApplicantId = {applicantId},
+        NewRole = {newRole},
+        ApplicantStore = {applicantStoreCode}");
         Console.WriteLine(new string('_', 50));
         await using var connection = (SqlConnection)_connectionProvider.GetConnection();
         const string query = $@"
-            INSERT INTO [ChangeRoleRequestRepository] ([MessageId],[RequestType],[ResponsibleId],[ApplicantId],[NewRole])
-            VALUES (@MessageId,@RequestType,@ResponsibleId,@ApplicantId,@NewRole);
+            INSERT INTO [ChangeRoleRequestRepository] ([MessageId],[ResponsibleId],[ApplicantId],[NewRole], [ApplicantStore])
+            VALUES (@MessageId,@ResponsibleId,@ApplicantId,@NewRole, @ApplicantStore);
         ";
         await using var command = new SqlCommand(query, connection);
-        command.Parameters.AddWithValue("@MessageId", messageMessageId);
-        command.Parameters.AddWithValue("@RequestType", (int)requestType);
+        command.Parameters.AddWithValue("@MessageId", messageId);
         command.Parameters.AddWithValue("@ResponsibleId", responsibleId);
         command.Parameters.AddWithValue("@ApplicantId", applicantId);
         command.Parameters.AddWithValue("@NewRole", newRole);
+        command.Parameters.AddWithValue("@ApplicantStore", applicantStoreCode ?? string.Empty);
         await connection.OpenAsync();
         await command.ExecuteNonQueryAsync();
         await connection.CloseAsync();
@@ -44,49 +45,33 @@ public class RequestRepositoryMSSql : IRequestRepository
     public async Task<ChangeRoleRequest> GetChangeRoleRequest(long responsibleId, long confirmedMessageId)
     {
         await using var connection = (SqlConnection)_connectionProvider.GetConnection();
-        const string query = "SELECT [RequestType],[ApplicantId], [NewRole] FROM [ChangeRoleRequestRepository] WHERE [ResponsibleId] = @ResponsibleId and [MessageId] = @MessageId";
+        const string query = "SELECT [ApplicantId], [NewRole], [ApplicantStore] FROM [ChangeRoleRequestRepository] WHERE [ResponsibleId] = @ResponsibleId and [MessageId] = @MessageId;";
         await using var command = new SqlCommand(query, connection);
         command.Parameters.AddWithValue("@ResponsibleId", responsibleId);
         command.Parameters.AddWithValue("@MessageId", confirmedMessageId);
-        connection.Open();
-        var requestType = RequestTypes.None;
+        await connection.OpenAsync();
         long applicantId = 0;
         var newRole = Roles.None;
+        var storeCode = string.Empty;
         await using (var reader = await command.ExecuteReaderAsync())
         {
-
             if (reader.HasRows)
             {
                 while (reader.Read())
                 {
-                    requestType = reader.IsDBNull(0) ? 0 : (RequestTypes)reader.GetInt32(0);
-                    applicantId = reader.IsDBNull(1) ? 0 : reader.GetInt64(1);
-                    newRole = reader.IsDBNull(2) ? 0 : (Roles)reader.GetInt32(2);
+                    applicantId = reader.IsDBNull(0) ? 0 : reader.GetInt64(0);
+                    newRole = reader.IsDBNull(1) ? 0 : (Roles)reader.GetInt32(1);
+                    storeCode = reader.IsDBNull(2) ? default : reader.GetString(2);
                 }
             }
         }
         Console.WriteLine($@"
             Получено Из БД Запрос:
-                RequestType = {requestType},
                 ResponsibleId = {responsibleId},
                 ApplicantId = {applicantId},
                 MessageId = {confirmedMessageId}");
         Console.WriteLine(new string('_', 50));
         await connection.CloseAsync();
-        return new ChangeRoleRequest(applicantId, requestType, newRole);
-    }
-}
-
-public class ChangeRoleRequest
-{
-    public  long ApplicantId { get; }
-    public RequestTypes RequestType { get; }
-    public Roles NewRole { get; }
-
-    public ChangeRoleRequest(long applicantId, RequestTypes requestType, Roles newRole)
-    {
-        ApplicantId = applicantId;
-        RequestType = requestType;
-        NewRole = newRole;
+        return new ChangeRoleRequest(applicantId, newRole, storeCode);
     }
 }

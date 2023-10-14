@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Text;
-using AdminBot.Entities.Users;
+using AdminBot.Entities;
+using AdminBot.Services;
+using Aspose.Cells;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -11,14 +13,14 @@ namespace AdminBot.MenuStates.States;
 public class DownloadFileState : IStateMenu
 {
     private readonly ITelegramBotClient _bot;
-    private const string Button1 = "Главное Меню";
+    private const string MainMenuButton = "Главное Меню";
     public DownloadFileState(ITelegramBotClient bot)
     {
         _bot = bot ?? throw new ArgumentNullException(nameof(bot));
     }
     public async Task ProcessMessage(Update update,
         UserBot userBot,
-        TelegramBotMenuContext context)
+        UpdateHandlerService updateHandlerService)
     {
         switch (update.Type)
         {
@@ -26,20 +28,14 @@ public class DownloadFileState : IStateMenu
                 switch (update.Message.Type)
                 {
                     case MessageType.Document:
-                        await StartDownload(update);
-                        await context.SetState(update, 
-                            new UserBot(userBot.Id,
-                                new StartState(_bot),
-                                userBot.Role));
+                        await StartDownload(update, updateHandlerService);
+                        await updateHandlerService.SetState(userBot, new StartState(_bot));
                         break;
                     case MessageType.Text:
                         switch (update.Message.Text)
                         {
-                            case Button1:
-                                await context.SetState(update, 
-                                    new UserBot(userBot.Id,
-                                        new StartState(_bot),
-                                        userBot.Role));
+                            case MainMenuButton:
+                                await updateHandlerService.SetState(userBot, new StartState(_bot));
                                 break;
                         }
                         break;
@@ -50,10 +46,10 @@ public class DownloadFileState : IStateMenu
         }
     }
 
-    public async Task SendStateMessage(UserBot userBot)
+    public async Task SendStateMessage(UserBot user, UpdateHandlerService updateHandlerService)
     {
 
-        await _bot.SendTextMessageAsync(userBot.Id, GetStateTitle(), replyMarkup: GetKeyboard());
+        await _bot.SendTextMessageAsync(user.Id, GetStateTitle(), replyMarkup: GetKeyboard());
     }
 
     public static string GetStateTitle()
@@ -71,14 +67,13 @@ public class DownloadFileState : IStateMenu
         {
             new()
             {
-                new KeyboardButton(Button1)
+                new KeyboardButton(MainMenuButton)
             }
         }
         );
     }
-    public async Task StartDownload(Update update)
+    public async Task StartDownload(Update update, UpdateHandlerService updateHandlerService)
     {
-
         var sw = new Stopwatch();
         sw.Restart();
         await _bot.SendTextMessageAsync(update.Message.Chat.Id,
@@ -107,5 +102,8 @@ public class DownloadFileState : IStateMenu
             Console.WriteLine(ex);
         }
 
+        var workbook = new Workbook(destinationFilePath);
+        var report = await updateHandlerService.CreateReport(workbook);
+        await report.StartUpdate();
     }
 }
