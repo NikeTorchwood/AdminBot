@@ -89,7 +89,7 @@ public class UserRepositoryMsSql : IUserRepository
         return new UserBot(userId, state, roleResult, storeCodeResult, usernameResult);
     }
 
-    public async Task<List<long>> GetUsersByRole(Roles role)
+    public async Task<List<long>> GetUsersIdByRole(Roles role)
     {
         var result = new List<long>();
         await using var connection = (SqlConnection)_connectionProvider.GetConnection();

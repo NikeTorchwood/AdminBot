@@ -34,7 +34,7 @@ public class ChangeRoleRequestService : IRequestService
     {
         var senderUserId = user.Id;
         var senderUserName = user.Username;
-        var responsibleIds = await _userRepository.GetUsersByRole(Roles.Administrator);
+        var responsibleIds = await _userRepository.GetUsersIdByRole(Roles.Administrator);
         foreach (var responsibleId in responsibleIds)
         {
             var message = await _bot.SendTextMessageAsync(responsibleId, $"Привет, вам нужно принять решение: @{senderUserName} хочет получить права Директора сектора.",
@@ -60,7 +60,7 @@ public class ChangeRoleRequestService : IRequestService
         }
         while (responsibleIds.Count == 0)
         {
-            responsibleIds = await _userRepository.GetUsersByRole(responsibleRole++);
+            responsibleIds = await _userRepository.GetUsersIdByRole(responsibleRole++);
         }
         foreach (var responsibleId in responsibleIds)
         {

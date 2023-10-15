@@ -8,7 +8,7 @@ namespace AdminBot.Repository.UserRepository;
 public interface IUserRepository
 {
     public Task SaveUser(UserBot user, IStateMenu newState);
-    public Task<List<long>> GetUsersByRole(Roles role);
+    public Task<List<long>> GetUsersIdByRole(Roles role);
     Task ResetRole(long userId);
     Task<List<long>> GetStoreDirectorId(string? storeCode);
     Task ChangeRole(ChangeRoleRequest request);

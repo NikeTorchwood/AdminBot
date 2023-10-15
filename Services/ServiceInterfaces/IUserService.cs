@@ -10,4 +10,5 @@ public interface IUserService
     Task ResetRole(long userId);
     Task SaveUser(UserBot user, IStateMenu newState);
     Task<UserBot> GetUser(User? user);
+    Task<List<long>> GetAllUserIdsBot();
 }

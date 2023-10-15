@@ -36,4 +36,14 @@ public class UserService : IUserService
     {
         return await _userRepository.GetUser(user, _bot);
     }
+
+    public async Task<List<long>> GetAllUserIdsBot()
+    {
+        var usersIds = new List<long>();
+        for (var i = Roles.Employer; i <= Roles.Administrator; i++)
+        {
+            usersIds.AddRange(await _userRepository.GetUsersIdByRole(i));
+        }
+        return usersIds;
+    }
 }

@@ -89,4 +89,9 @@ public class UpdateHandlerService
         var reportData = await _storeService.GetStoreData(user.StoreCode);
         await _bot.SendTextMessageAsync(user.Id, reportData);
     }
+
+    public async Task<List<long>> GetAllUsers()
+    {
+        return await _userService.GetAllUserIdsBot();
+    }
 }

@@ -59,14 +59,8 @@ public class StartState : IStateMenu
                                 "Для управлением списка магазинов нужна роль Администратор\\Директор сектора");
                         }
                         break;
-                    case ChooseStoreButton: //if (userBot.UserRole >= Roles.SectorDirector)
-                        //{
-                        //    await _bot.SendTextMessageAsync(userBot.Id,
-                        //        "Выбор магазина доступен только для роли Специалист \\ Начальник офиса");
-                        //}
-                        //else
-                        //{
-                            await updateHandlerService.SetState(userBot, new ChooseStoreState(_bot));
+                    case ChooseStoreButton: 
+                        await updateHandlerService.SetState(userBot, new ChooseStoreState(_bot));
                         break;
                     case PrintReportButton:
                         if (string.IsNullOrWhiteSpace(userBot.StoreCode) || userBot.UserRole == Roles.None)
@@ -103,6 +97,7 @@ public class StartState : IStateMenu
         sb.AppendLine("Привет, здесь инструкция по использованию бота");
         sb.AppendLine(
             "Для начала нужно пройти авторизацию, выбери свою роль и свой магазин. После подтверждения со стороны ответственного у тебя обновится ме" +
+            "" +
             "" +
             "" +
             "ню.");

@@ -29,6 +29,11 @@ public class DownloadFileState : IStateMenu
                 {
                     case MessageType.Document:
                         await StartDownload(update, updateHandlerService);
+                        var usersId = await updateHandlerService.GetAllUsers();
+                        foreach (var userId in usersId)
+                        {
+                            await _bot.SendTextMessageAsync(userId, "Отчет был обновлен");
+                        }
                         await updateHandlerService.SetState(userBot, new StartState(_bot));
                         break;
                     case MessageType.Text:
@@ -105,5 +110,10 @@ public class DownloadFileState : IStateMenu
         var workbook = new Workbook(destinationFilePath);
         var report = await updateHandlerService.CreateReport(workbook);
         await report.StartUpdate();
+        foreach (var errorCodeStore in report.ErrorStoreCodeList)
+        {
+            await _bot.SendTextMessageAsync(update.Message.Chat.Id,
+                $"При составлении магазина {errorCodeStore}, произошла ошибка, возможно его нет в отчете.");
+        }
     }
 }

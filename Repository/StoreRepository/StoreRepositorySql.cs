@@ -12,6 +12,7 @@ public class StoreRepositorySql : IStoreRepository
     {
         _connectionProvider = connectionProvider;
     }
+
     public async Task DeleteStore(string codeStore)
     {
         var connection = (SqlConnection)_connectionProvider.GetConnection();
@@ -59,6 +60,7 @@ public class StoreRepositorySql : IStoreRepository
                 }
             }
         }
+
         await connection.CloseAsync();
         return result;
     }
@@ -70,21 +72,25 @@ public class StoreRepositorySql : IStoreRepository
         sw.Start();
         var connection = (SqlConnection)_connectionProvider.GetConnection();
         const string query = @"
+UPDATE [StoreTable]
+SET [CountLP] = @CountLP
+WHERE [CodeStore] = @StoreCode;
+
 MERGE INTO [EconomicDirections] AS Target
-    USING 
-        (VALUES (@StoreCode, @EconomicDirectionName, @EconomicDirectionPlan, @EconomicDirectionFact))
-        AS Source ([StoreCode], [EconomicDirectionName], [EconomicDirectionPlan], [EconomicDirectionFact])
-    ON 
-        (Target.[StoreCode] = Source.[StoreCode] AND Target.[EconomicDirectionName] = Source.[EconomicDirectionName])
-    WHEN MATCHED THEN
-        UPDATE SET 
-            Target.[EconomicDirectionPlan] = Source.[EconomicDirectionPlan],
-            Target.[EconomicDirectionFact] = Source.[EconomicDirectionFact]
-    WHEN NOT MATCHED THEN
-        INSERT 
-            ([StoreCode], [EconomicDirectionName], [EconomicDirectionPlan], [EconomicDirectionFact])
-        VALUES
-            (Source.[StoreCode], Source.[EconomicDirectionName], Source.[EconomicDirectionPlan], Source.[EconomicDirectionFact]);
+USING  
+    (VALUES (@StoreCode, @EconomicDirectionName, @EconomicDirectionPlan, @EconomicDirectionFact))
+    AS Source ([StoreCode], [EconomicDirectionName], [EconomicDirectionPlan], [EconomicDirectionFact])
+ON  
+    (Target.[StoreCode] = Source.[StoreCode] AND Target.[EconomicDirectionName] = Source.[EconomicDirectionName])
+WHEN MATCHED THEN
+    UPDATE SET
+        Target.[EconomicDirectionPlan] = Source.[EconomicDirectionPlan],
+        Target.[EconomicDirectionFact] = Source.[EconomicDirectionFact]
+WHEN NOT MATCHED THEN
+    INSERT
+        ([StoreCode], [EconomicDirectionName], [EconomicDirectionPlan], [EconomicDirectionFact])
+    VALUES
+        (Source.[StoreCode], Source.[EconomicDirectionName], Source.[EconomicDirectionPlan], Source.[EconomicDirectionFact]);
 ";
         await using var command = new SqlCommand(query, connection);
         await connection.OpenAsync();
@@ -94,12 +100,14 @@ MERGE INTO [EconomicDirections] AS Target
             {
                 command.Parameters.Clear(); // Очистить параметры перед каждой итерацией
                 command.Parameters.AddWithValue("@StoreCode", store.CodeStore);
+                command.Parameters.AddWithValue("@CountLP", store.CountLP);
                 command.Parameters.AddWithValue("@EconomicDirectionName", direction.DirectionName);
                 command.Parameters.AddWithValue("@EconomicDirectionPlan", direction.Plan);
                 command.Parameters.AddWithValue("@EconomicDirectionFact", direction.Fact);
                 await command.ExecuteNonQueryAsync();
             }
         }
+
         sw.Stop();
         Console.WriteLine($"Потраченное время на обновление БД : {sw.Elapsed}");
     }
@@ -107,8 +115,14 @@ MERGE INTO [EconomicDirections] AS Target
 
     public async Task<Store> GetStore(string? userStoreCode)
     {
+        var countLP = await GetCountLP(userStoreCode);
+        if (countLP == null)
+        {
+            return null;
+        }
+
         var connection = (SqlConnection)_connectionProvider.GetConnection();
-        const string query = @$"
+        const string query = @"
 Select 
     [EconomicDirectionName], [EconomicDirectionPlan], [EconomicDirectionFact]
 from [EconomicDirections] 
@@ -130,7 +144,21 @@ from [EconomicDirections]
                 }
             }
         }
-        await connection.CloseAsync();
-        return new Store(userStoreCode, result);
+        return new Store(userStoreCode, result, (int)countLP);
+    }
+
+    private async Task<int?> GetCountLP(string? userStoreCode)
+    {
+        await using var connection = (SqlConnection)_connectionProvider.GetConnection();
+        const string query = @"
+SELECT
+    [CountLP]
+FROM [StoreTable]
+WHERE [CodeStore] = @userStoreCode";
+        await using var command = new SqlCommand(query, connection);
+        command.Parameters.AddWithValue("@userStoreCode", userStoreCode);
+        await connection.OpenAsync();
+        var result = await command.ExecuteScalarAsync();
+        return result != DBNull.Value ? (int?)result : null;
     }
 }

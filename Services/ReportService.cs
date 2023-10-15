@@ -7,8 +7,9 @@ namespace AdminBot.Services;
 
 public class ReportService
 {
-    public Worksheet DataList { get; }
+    private readonly Worksheet _dataList;
     private readonly IStoreService _storeService;
+    public List<string> ErrorStoreCodeList { get; }
 
     private readonly List<string> _directionNames = new()
     {
@@ -27,7 +28,8 @@ public class ReportService
         {
             throw new ArgumentNullException(nameof(workbook));
         }
-        DataList = workbook.GetSheet("Данные Магазина");
+        _dataList = workbook.GetSheet("Данные Магазина");
+        ErrorStoreCodeList = new List<string>();
     }
 
     public async Task StartUpdate()
@@ -36,29 +38,82 @@ public class ReportService
         var sw = new Stopwatch();
         sw.Restart();
         var storeNames = await _storeService.GetStoreNameList();
-        var storeList = storeNames.Select(storeName =>
-            GetStoreFromReport(storeName, _directionNames, this)).ToList();
+        var storeList = new List<Store>();
+        foreach (var storeName in storeNames)
+        {
+            var store = GetStoreFromReport(storeName, _directionNames);
+            if (store != null)
+            {
+                storeList.Add(store);
+            }
+            else
+            {
+                ErrorStoreCodeList.Add(storeName);
+            }
+        }
         sw.Stop();
         Console.WriteLine($"Подготовка к загрузке в БД : {sw.Elapsed}");
         await _storeService.UpdateStores(storeList);
     }
-    public static EconomicDirection GetDirectionFromReport(string storeCode, string directionName, Worksheet dataList)
+    public EconomicDirection GetDirectionFromReport(string storeCode, string directionName)
     {
-        var row = dataList.Cells.Find(storeCode, dataList.Cells.FirstCell).Row;
-        var planColumn = dataList.FindColumnByName(directionName, "План");
-        var factColumn = dataList.FindColumnByName(directionName, "Факт");
-        var planValue = dataList.Cells[row, planColumn].Type != CellValueType.IsString
-            ? dataList.Cells[row, planColumn].IntValue
+        int row;
+        if (_dataList.Cells.Find(storeCode, _dataList.Cells.FirstCell) != null)
+        {
+            row = _dataList.Cells.Find(storeCode, _dataList.Cells.FirstCell).Row;
+        }
+        else
+        {
+            return null;
+        }
+        var planColumn = _dataList.FindColumnByName(directionName, "План");
+        var factColumn = _dataList.FindColumnByName(directionName, "Факт");
+        var planValue = _dataList.Cells[row, planColumn].Type != CellValueType.IsString
+            ? _dataList.Cells[row, planColumn].IntValue
             : 0;
-        var factValue = dataList.Cells[row, factColumn].Type != CellValueType.IsString
-            ? dataList.Cells[row, factColumn].IntValue
+        var factValue = _dataList.Cells[row, factColumn].Type != CellValueType.IsString
+            ? _dataList.Cells[row, factColumn].IntValue
             : 0;
         return new EconomicDirection(directionName, planValue, factValue);
     }
-    public Store GetStoreFromReport(string storeCode, List<string> directionNameList, ReportService reportService)
+    public Store GetStoreFromReport(string storeCode, List<string> directionNameList)
     {
-        var economicDirections = directionNameList.Select(directionName
-            => GetDirectionFromReport(storeCode, directionName, reportService.DataList)).ToList();
-        return new Store(storeCode, economicDirections);
+        var economicDirections = new List<EconomicDirection>();
+        var countLP = GetCountLPFromReport(storeCode);
+        if (countLP == default)
+        {
+            return null;
+        }
+        foreach (var directionName in directionNameList)
+        {
+            var economicDirection = GetDirectionFromReport(storeCode, directionName);
+            if (economicDirection != null)
+            {
+                economicDirections.Add(economicDirection);
+            }
+            else
+            {
+                return null;
+            }
+        }
+        return new Store(storeCode, economicDirections, countLP);
+    }
+
+    private int GetCountLPFromReport(string storeCode)
+    {
+        int row;
+        if (_dataList.Cells.Find(storeCode, _dataList.Cells.FirstCell) != null)
+        {
+            row = _dataList.Cells.Find(storeCode, _dataList.Cells.FirstCell).Row;
+        }
+        else
+        {
+            return default;
+        }
+        var countColumn = _dataList.FindColumnByName("Количество", "ЛП");
+        var countLP = _dataList.Cells[row, countColumn].Type != CellValueType.IsString
+            ? _dataList.Cells[row, countColumn].IntValue
+            : 0;
+        return countLP;
     }
 }
