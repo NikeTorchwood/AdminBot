@@ -44,7 +44,6 @@ public class StoreService : IStoreService
         sb.AppendLine(new string('_', 30));
         sb.AppendLine($"Код ОП: {store.CodeStore}");
         sb.AppendLine($"Количество ЛП: {store.CountLP}");
-        //var calculation = new DirectionCalculation(store);
         foreach (var economicDirection in store.EconomicDirections)
         {
             var economicCalculation = new DirectionCalculation(economicDirection, store.CountLP);
@@ -55,26 +54,9 @@ public class StoreService : IStoreService
             sb.AppendLine($"Процент выполнения: {economicCalculation.DirectionProgress,0:P1}");
             sb.AppendLine($"Процент выполнения прогноз: {economicCalculation.DirectionProgressForecast,0:P1}");
             sb.AppendLine($"Остаток: {economicCalculation.DirectionRemainingTotal}");
-            sb.AppendLine($"Дневной план по направлению: {economicCalculation.DailyPlan}");
+            sb.AppendLine($"Дневной план по направлению: {economicCalculation.DailyPlan, 0:F2}");
         }
+        sb.AppendLine(new string('_', 30));
         return sb.ToString();
-    }
-}
-
-public class DirectionCalculation
-{
-    public decimal DirectionProgress { get; }
-    public int DirectionRemainingTotal { get; }
-    public decimal DailyPlan { get; }
-    public decimal DirectionProgressForecast { get; }
-    public DirectionCalculation(EconomicDirection economicDirection, int countLP)
-    {
-        DirectionProgress = (decimal)economicDirection.Fact / (decimal)economicDirection.Plan;
-        DirectionRemainingTotal = economicDirection.Plan - economicDirection.Fact;
-        var daysInMonth = DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month);
-        var today = DateTime.Today.Day;
-        var daysRemainingInMonth = daysInMonth - today;
-        DirectionProgressForecast = DirectionProgress / countLP * daysInMonth;
-        DailyPlan = DirectionRemainingTotal / daysRemainingInMonth;
     }
 }

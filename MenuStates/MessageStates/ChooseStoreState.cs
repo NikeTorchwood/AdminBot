@@ -45,6 +45,8 @@ public class ChooseStoreState : IStateMenu
                                         $"{(int)RequestTypes.ChangeRoleEmployer}.Specialist"),
                                         }),
                                         replyToMessageId: update.Message.MessageId);
+                                    await _bot.SendTextMessageAsync(userBot.Id,
+                                        "Дождитесь подтверждения со стороны ответственного, после подтверждения ваше меню изменится");
                                     await updateHandlerService.SetState(userBot, new StartState(_bot));
                                     break;
                                 case Roles.Administrator:

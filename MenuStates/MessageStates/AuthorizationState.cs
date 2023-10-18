@@ -66,6 +66,8 @@ public class AuthorizationState : IStateMenu
                             else
                             {
                                 await updateHandlerService.CreateChangeRoleRequest(Roles.SectorDirector, update.Message.From);
+                                await _bot.SendTextMessageAsync(userBot.Id,
+                                    "Дождитесь подтверждения со стороны ответственного, после подтверждения ваше меню изменится");
                                 await updateHandlerService.SetState(userBot, new StartState(_bot));
                             }
 
